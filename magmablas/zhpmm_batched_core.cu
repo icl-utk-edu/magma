@@ -180,20 +180,21 @@ magmablas_zhpmm_batched(
         return;
     }
 
-    bool zhpmm_small_inplace = (
+    bool zhpmm_small = (
             side     == MagmaLeft    &&
             uplo     == MagmaLower   &&
             m        <= 32           &&
             alpha    == MAGMA_Z_ONE  &&
-            beta     == MAGMA_Z_ZERO &&
-            dC_array == dB_array     &&
-            lddc     == lddb);
+            beta     == MAGMA_Z_ZERO );
 
-    // check for in-place zhpmm/zhpmv
-    if( zhpmm_small_inplace ) {
+    // check for small zhpmm/zhpmv
+    if( zhpmm_small ) {
         magma_zhpmm_small_batched(
             side, uplo, m, n,
-            dA_array, dB_array, lddb, batchCount, queue);
+            dA_array,
+            dB_array, lddb,
+            dC_array, lddc,
+            batchCount, queue);
         return;
     }
 

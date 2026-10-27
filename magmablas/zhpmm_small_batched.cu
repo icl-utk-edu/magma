@@ -317,6 +317,7 @@ magma_zhpmm_small_batched_core(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex** dAP_array,
     magmaDoubleComplex** dB_array, magma_int_t lddb,
+    magmaDoubleComplex** dC_array, magma_int_t lddc,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
@@ -335,8 +336,10 @@ magma_zhpmm_small_batched_core(
         arginfo = -4;
     else if( lddb < max(1,m) )
         arginfo = -7;
+    else if( lddc < max(1,m) )
+        arginfo = -9;
     else if ( batchCount < 0 )
-        arginfo = -8;
+        arginfo = -10;
 
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
@@ -349,38 +352,38 @@ magma_zhpmm_small_batched_core(
         #ifdef TUNE_PPINV_APPLY
         case TUNE_PPINV_N: arginfo = zhpmm_lower_left_small_batched_kernel_driver< PPINV_BX, PPINV_BY, PPINV_TX, PPINV_TY>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
         #else
-        case  1: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 1, 32,  1,  1>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  2: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 2, 32,  2, 16>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  3: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 3, 30,  3, 10>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  4: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 4, 32,  4,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  5: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 5, 30,  5,  6>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  6: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 6, 30,  6,  5>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  7: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 7, 32,  7,  4>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  8: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 8, 32,  8,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  9: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 9, 36, 9,   6>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 10: arginfo = zhpmm_lower_left_small_batched_kernel_driver<10, 30, 10,  3>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 11: arginfo = zhpmm_lower_left_small_batched_kernel_driver<11, 11, 11, 11>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 12: arginfo = zhpmm_lower_left_small_batched_kernel_driver<12, 12, 12, 12>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 13: arginfo = zhpmm_lower_left_small_batched_kernel_driver<13, 13, 13, 13>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 14: arginfo = zhpmm_lower_left_small_batched_kernel_driver<14, 14, 14, 14>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 15: arginfo = zhpmm_lower_left_small_batched_kernel_driver<15, 15, 15, 15>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 16: arginfo = zhpmm_lower_left_small_batched_kernel_driver<16, 16, 16, 16>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 17: arginfo = zhpmm_lower_left_small_batched_kernel_driver<17, 15, 17, 15>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 18: arginfo = zhpmm_lower_left_small_batched_kernel_driver<18, 32,  9,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 19: arginfo = zhpmm_lower_left_small_batched_kernel_driver<19, 19, 19, 19>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 20: arginfo = zhpmm_lower_left_small_batched_kernel_driver<20, 20, 20, 20>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 21: arginfo = zhpmm_lower_left_small_batched_kernel_driver<21, 21, 21, 21>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 22: arginfo = zhpmm_lower_left_small_batched_kernel_driver<22, 22, 22, 22>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 23: arginfo = zhpmm_lower_left_small_batched_kernel_driver<23, 23, 23, 23>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 24: arginfo = zhpmm_lower_left_small_batched_kernel_driver<24, 24, 24, 24>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 25: arginfo = zhpmm_lower_left_small_batched_kernel_driver<25, 25, 25, 25>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 26: arginfo = zhpmm_lower_left_small_batched_kernel_driver<26, 26, 26, 26>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 27: arginfo = zhpmm_lower_left_small_batched_kernel_driver<27, 40, 9,  10>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 28: arginfo = zhpmm_lower_left_small_batched_kernel_driver<28, 28, 28, 28>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 29: arginfo = zhpmm_lower_left_small_batched_kernel_driver<29, 29, 29, 29>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 30: arginfo = zhpmm_lower_left_small_batched_kernel_driver<30, 30, 30, 30>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 31: arginfo = zhpmm_lower_left_small_batched_kernel_driver<31, 31, 31, 31>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 32: arginfo = zhpmm_lower_left_small_batched_kernel_driver<32, 32, 32,  4>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  1: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 1, 32,  1,  1>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case  2: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 2, 32,  2, 16>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case  3: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 3, 30,  3, 10>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case  4: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 4, 32,  4,  8>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case  5: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 5, 30,  5,  6>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case  6: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 6, 30,  6,  5>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case  7: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 7, 32,  7,  4>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case  8: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 8, 32,  8,  8>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case  9: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 9, 36, 9,   6>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 10: arginfo = zhpmm_lower_left_small_batched_kernel_driver<10, 30, 10,  3>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 11: arginfo = zhpmm_lower_left_small_batched_kernel_driver<11, 11, 11, 11>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 12: arginfo = zhpmm_lower_left_small_batched_kernel_driver<12, 12, 12, 12>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 13: arginfo = zhpmm_lower_left_small_batched_kernel_driver<13, 13, 13, 13>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 14: arginfo = zhpmm_lower_left_small_batched_kernel_driver<14, 14, 14, 14>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 15: arginfo = zhpmm_lower_left_small_batched_kernel_driver<15, 15, 15, 15>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 16: arginfo = zhpmm_lower_left_small_batched_kernel_driver<16, 16, 16, 16>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 17: arginfo = zhpmm_lower_left_small_batched_kernel_driver<17, 15, 17, 15>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 18: arginfo = zhpmm_lower_left_small_batched_kernel_driver<18, 32,  9,  8>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 19: arginfo = zhpmm_lower_left_small_batched_kernel_driver<19, 19, 19, 19>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 20: arginfo = zhpmm_lower_left_small_batched_kernel_driver<20, 20, 20, 20>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 21: arginfo = zhpmm_lower_left_small_batched_kernel_driver<21, 21, 21, 21>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 22: arginfo = zhpmm_lower_left_small_batched_kernel_driver<22, 22, 22, 22>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 23: arginfo = zhpmm_lower_left_small_batched_kernel_driver<23, 23, 23, 23>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 24: arginfo = zhpmm_lower_left_small_batched_kernel_driver<24, 24, 24, 24>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 25: arginfo = zhpmm_lower_left_small_batched_kernel_driver<25, 25, 25, 25>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 26: arginfo = zhpmm_lower_left_small_batched_kernel_driver<26, 26, 26, 26>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 27: arginfo = zhpmm_lower_left_small_batched_kernel_driver<27, 40, 9,  10>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 28: arginfo = zhpmm_lower_left_small_batched_kernel_driver<28, 28, 28, 28>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 29: arginfo = zhpmm_lower_left_small_batched_kernel_driver<29, 29, 29, 29>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 30: arginfo = zhpmm_lower_left_small_batched_kernel_driver<30, 30, 30, 30>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 31: arginfo = zhpmm_lower_left_small_batched_kernel_driver<31, 31, 31, 31>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
+        case 32: arginfo = zhpmm_lower_left_small_batched_kernel_driver<32, 32, 32,  4>(n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue ); break;
         #endif
         default:;
     }
@@ -507,7 +510,7 @@ magma_zhpmm_small_batched(
         magma_zhpmv_small_batched( uplo, m, dAP_array, dB_array, 1, dC_array, 1, batchCount, queue );
     }
     else {
-        magma_zhpmm_small_batched_core(side, uplo, m, n, dAP_array, dB_array, lddb, batchCount, queue );
+        magma_zhpmm_small_batched_core(side, uplo, m, n, dAP_array, dB_array, lddb, dC_array, lddc, batchCount, queue );
     }
 }
 

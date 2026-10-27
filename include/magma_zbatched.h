@@ -476,6 +476,7 @@ magma_zhpmm_small_batched(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex **dAP_array,
     magmaDoubleComplex **dB_array, magma_int_t lddb,
+    magmaDoubleComplex **dC_array, magma_int_t lddc,
     magma_int_t batchCount, magma_queue_t queue);
 
 void
@@ -484,6 +485,7 @@ magma_zhpmm_small_batched_core(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex** dAP_array,
     magmaDoubleComplex** dB_array, magma_int_t lddb,
+    magmaDoubleComplex** dC_array, magma_int_t lddc,
     magma_int_t batchCount, magma_queue_t queue );
 
 void
