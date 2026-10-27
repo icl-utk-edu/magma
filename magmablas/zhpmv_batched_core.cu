@@ -21,7 +21,7 @@
 extern "C" void
 magmablas_zhpmv_batched_core(
         magma_uplo_t uplo, magma_int_t n,
-        magmaDoubleComplex alpha, magmaDoubleComplex **dA_array, magma_int_t ldda,
+        magmaDoubleComplex alpha, magmaDoubleComplex **dAP_array,
                                   magmaDoubleComplex **dX_array, magma_int_t incx,
         magmaDoubleComplex beta,  magmaDoubleComplex **dY_array, magma_int_t incy,
         magma_int_t offA, magma_int_t offX, magma_int_t offY,
@@ -32,14 +32,14 @@ magmablas_zhpmv_batched_core(
         const int nb = param[0];
         hpmv_diag_template_batched<magmaDoubleComplex, ZHEMV_BATCHED_LOWER>
                 ( uplo, n,
-                  alpha, dA_array, ldda,
+                  alpha, dAP_array, n,
                          dX_array, incx,
                   beta,  dY_array, incy,
                   offA, offX, offY, batchCount, queue);
         if(n > nb){
             hpmv_lower_template_batched<magmaDoubleComplex, ZHEMV_BATCHED_LOWER>
                 ( n, alpha,
-                  dA_array, ldda,
+                  dAP_array, n,
                   dX_array, incx,
                   dY_array, incy,
                   offA, offX, offY, batchCount, queue);
@@ -50,14 +50,14 @@ magmablas_zhpmv_batched_core(
         const int nb = param[0];
         hpmv_diag_template_batched<magmaDoubleComplex, ZHEMV_BATCHED_UPPER>
                 ( uplo, n,
-                  alpha, dA_array, ldda,
+                  alpha, dAP_array, n,
                          dX_array, incx,
                   beta,  dY_array, incy,
                   offA, offX, offY, batchCount, queue);
         if(n > nb){
             hpmv_upper_template_batched<magmaDoubleComplex, ZHEMV_BATCHED_UPPER>
                 ( n, alpha,
-                  dA_array, ldda,
+                  dAP_array, n,
                   dX_array, incx,
                   dY_array, incy,
                   offA, offX, offY, batchCount, queue);
@@ -71,10 +71,10 @@ magmablas_zhpmv_batched_core(
     -------
     ZHPMV performs the matrix-vector operation:
 
-        y := alpha*A*x + beta*y,
+        y := alpha*AP*x + beta*y,
 
     where alpha and beta are scalars, x and y are n element vectors and
-    A is an n by n Hermitian matrix stored in a packed format (only upper
+    AP is an n by n Hermitian matrix stored in a packed format (only upper
     or lower portion).
     This is the fixed size batched version of the operation.
 
@@ -83,14 +83,14 @@ magmablas_zhpmv_batched_core(
     @param[in]
     uplo    magma_uplo_t.
             On entry, UPLO specifies whether the upper or lower
-            triangular part of the array A is stored in the packed
+            triangular part of the array AP is stored in the packed
             format:
-      -     = MagmaUpper:  Only the upper triangular part of A is stored.
-      -     = MagmaLower:  Only the lower triangular part of A is stored.
+      -     = MagmaUpper:  Only the upper triangular part of AP is stored.
+      -     = MagmaLower:  Only the lower triangular part of AP is stored.
 
     @param[in]
     n       INTEGER.
-            On entry, N specifies the order of each matrix A.
+            On entry, N specifies the order of each matrix AP.
             N must be at least zero.
 
     @param[in]
@@ -98,19 +98,10 @@ magmablas_zhpmv_batched_core(
             On entry, ALPHA specifies the scalar alpha.
 
     @param[in]
-    dA_array    Array of pointers, dimension(batchCount).
-            Each is a COMPLEX_16 array A of DIMENSION ( LDDA, n ).
+    dAP_array    Array of pointers, dimension(batchCount).
+            Each is a COMPLEX_16 array AP of DIMENSION n*(n+1)/2.
             Note that the imaginary parts of the diagonal elements need
             not be set and are assumed to be zero.
-
-    @param[in]
-    ldda    INTEGER.
-            On entry, LDDA specifies the first dimension of each A as declared
-            in the calling (sub) program. LDDA must be at least
-            max( 1, n ).
-            It is recommended that ldda is multiple of 16. Otherwise
-            performance would be deteriorated as the memory accesses
-            would not be fully coalescent.
 
     @param[in]
     dX_array    Array of pointers, dimension(batchCount).
@@ -155,7 +146,7 @@ magmablas_zhpmv_batched_core(
 extern "C" void
 magmablas_zhpmv_batched(
         magma_uplo_t uplo, magma_int_t n,
-        magmaDoubleComplex alpha, magmaDoubleComplex **dA_array, magma_int_t ldda,
+        magmaDoubleComplex alpha, magmaDoubleComplex **dAP_array,
                                   magmaDoubleComplex **dX_array, magma_int_t incx,
         magmaDoubleComplex beta,  magmaDoubleComplex **dY_array, magma_int_t incy,
         magma_int_t batchCount, magma_queue_t queue )
@@ -165,14 +156,12 @@ magmablas_zhpmv_batched(
         info = -1;
     } else if ( n < 0 ) {
         info = -2;
-    } else if ( ldda < max(1, n) ) {
-        info = -5;
     } else if ( incx == 0 ) {
-        info = -7;
+        info = -6;
     } else if ( incy == 0 ) {
-        info = -10;
+        info = -9;
     } else if ( batchCount < 0 )
-        info = -11;
+        info = -10;
 
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
@@ -190,7 +179,7 @@ magmablas_zhpmv_batched(
 
     if( zhpmv_small ) {
         magma_zhpmv_small_batched(
-            uplo, n, dA_array,
+            uplo, n, dAP_array,
             dX_array, incx,
             dY_array, incy, batchCount, queue );
         return;
@@ -198,7 +187,7 @@ magmablas_zhpmv_batched(
 
     magmablas_zhpmv_batched_core(
             uplo, n,
-            alpha, dA_array, ldda,
+            alpha, dAP_array,
                    dX_array, incx,
             beta,  dY_array, incy,
             0, 0, 0,

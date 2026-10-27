@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 
                 gpu_time = magma_sync_wtime( opts.queue );
                 magma_zppinv_batched(opts.uplo, N, dAP_array, device_work, device_lwork, dinfo_array, batchCount, opts.queue);
-                magmablas_zhpmm_batched(MagmaLeft, opts.uplo, N, nrhs, MAGMA_Z_ONE, dAP_array, N, dB_array, lddb, MAGMA_Z_ZERO, dX_array, lddb, batchCount, opts.queue );
+                magmablas_zhpmm_batched(MagmaLeft, opts.uplo, N, nrhs, MAGMA_Z_ONE, dAP_array, dB_array, lddb, MAGMA_Z_ZERO, dX_array, lddb, batchCount, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
 
                 // copy result back to dB
@@ -197,7 +197,7 @@ int main(int argc, char **argv)
 
                 gpu_time = magma_sync_wtime( opts.queue );
                 magma_zppinv_batched(opts.uplo, N, dAP_array, device_work, device_lwork, dinfo_array, batchCount, opts.queue);
-                magmablas_zhpmm_batched(MagmaLeft, opts.uplo, N, nrhs, MAGMA_Z_ONE, dAP_array, N, dB_array, lddb, MAGMA_Z_ZERO, dB_array, lddb, batchCount, opts.queue );
+                magmablas_zhpmm_batched(MagmaLeft, opts.uplo, N, nrhs, MAGMA_Z_ONE, dAP_array, dB_array, lddb, MAGMA_Z_ZERO, dB_array, lddb, batchCount, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
 
                 // free workspace, if any

@@ -182,7 +182,7 @@ int main(int argc, char **argv)
                     magma_zsetmatrix( N, nrhs*batchCount, hB, ldb, dB, lddb, opts.queue );
 
                     x_time = magma_sync_wtime( opts.queue );
-                    magmablas_zhpmm_batched(MagmaLeft, opts.uplo, N, nrhs, MAGMA_Z_ONE, dAP_array, N, dB_array, lddb, MAGMA_Z_ZERO, dX_array, lddb, batchCount, opts.queue );
+                    magmablas_zhpmm_batched(MagmaLeft, opts.uplo, N, nrhs, MAGMA_Z_ONE, dAP_array, dB_array, lddb, MAGMA_Z_ZERO, dX_array, lddb, batchCount, opts.queue );
                     x_time = magma_sync_wtime( opts.queue ) - x_time;
                     gpu_time += x_time;
                 }
