@@ -212,8 +212,6 @@ magma_zpptrf_lpout_batched(
 
         ib   = min(pptf2_nb, n-j);
         switch(pptf2_nb) {
-            case 32: magma_zpptrf_lpout_iteration_batched<32>(uplo, rows, ib, dA_array, ai, aj, lda, j, gbstep, shared_mem_size, info_array, batchCount, queue); break;
-            case 16: magma_zpptrf_lpout_iteration_batched<16>(uplo, rows, ib, dA_array, ai, aj, lda, j, gbstep, shared_mem_size, info_array, batchCount, queue); break;
             case  8: magma_zpptrf_lpout_iteration_batched< 8>(uplo, rows, ib, dA_array, ai, aj, lda, j, gbstep, shared_mem_size, info_array, batchCount, queue); break;
             case  4: magma_zpptrf_lpout_iteration_batched< 4>(uplo, rows, ib, dA_array, ai, aj, lda, j, gbstep, shared_mem_size, info_array, batchCount, queue); break;
             case  2: magma_zpptrf_lpout_iteration_batched< 2>(uplo, rows, ib, dA_array, ai, aj, lda, j, gbstep, shared_mem_size, info_array, batchCount, queue); break;

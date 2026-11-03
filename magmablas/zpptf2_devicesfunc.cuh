@@ -43,7 +43,6 @@ static inline __device__ void zgemm_packed_v20_1_fixsize_device(int m, int k,
 
 
     // accumulate
-    //#pragma unroll
     for (int iter=0; iter < k; iter += NB)
     {
         // rp to rA
@@ -127,7 +126,6 @@ static inline __device__ void zgemm_packed_v20_1_anywidth_device(int m, int n, i
 
 
     // accumulate
-    //#pragma unroll
     for (int iter=0; iter < k; iter += NB)
     {
         // rp to rA
@@ -268,7 +266,6 @@ static inline __device__ void zpptf2_smlpout_anywidth_device(const int m, const 
 
 
     //copy sdata_A to A
-    //#pragma unroll
     for (int i=0; i < n; i++)
     {
         #ifdef BATCH_DISABLE_CLEANUP

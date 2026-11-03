@@ -26,7 +26,6 @@ static inline __device__ void zpotf2_sminout_anywidth_device(const int m, const 
     magmaDoubleComplex factor;
     int linfo = 0;
 
-    //#pragma unroll
     for (int iter=0; iter < n; iter++)
     {
         //sqrt(diag) and zdscal
