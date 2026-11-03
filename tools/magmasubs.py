@@ -151,10 +151,12 @@ blas = [
     ('sscal',          'dscal',          'sscal',          'dscal'           ),
     ('sswap',          'dswap',          'cswap',          'zswap'           ),
     ('ssymm',          'dsymm',          'chemm',          'zhemm'           ),
+    ('sspmm',          'dspmm',          'chpmm',          'zhpmm'           ),
     ('ssytrs',         'dsytrs',         'chetrs',         'zhetrs'          ),
     ('ssymm',          'dsymm',          'csymm',          'zsymm'           ),
     ('ssymv',          'dsymv',          'chemv',          'zhemv'           ),
     ('ssymv',          'dsymv',          'csymv',          'zsymv'           ),
+    ('sspmv',          'dspmv',          'chpmv',          'zhpmv'           ),
     ('ssyr',           'dsyr',           'cher',           'zher'            ),  # also does zher2, zher2k, zherk
     ('ssyr',           'dsyr',           'csyr',           'zsyr'            ),  # also does zsyrk, zsyr2k
     ('strmm',          'dtrmm',          'ctrmm',          'ztrmm'           ),
