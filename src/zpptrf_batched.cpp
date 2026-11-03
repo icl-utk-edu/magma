@@ -82,9 +82,10 @@ magma_zpptrf_batched(
 {
     magma_int_t arginfo = 0;
     if ( uplo != MagmaLower) {
-        printf("Only uplo = MagmaLower is currently supported\n");
+        printf("%s: Only uplo = MagmaLower is currently supported\n", __func__);
         arginfo = -1;
-    } else if (n < 0) {
+    } else if ( n < 0 || n > 1024 ) {
+        printf("%s: Only sizes up to 1024 are supported\n", __func__);
         arginfo = -2;
     }
     else if(batchCount < 0) {
