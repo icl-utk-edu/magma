@@ -84,7 +84,11 @@ magmablas_ztrsv_packed_recursive_batched(
     else if (transA != MagmaNoTrans  && uplo == MagmaUpper) { shape = 3; } // TU | CU
 
     // stopping condition
+#ifdef MAGMA_HAVE_HIP
+    if(n <= 16){
+#else
     if(n <= 32){
+#endif
         magmablas_ztrsv_packed_small_batched(
             uplo, transA, diag, n,
             dA_array(Ai, Aj), ldda,
