@@ -25,41 +25,14 @@
 #define dB(i, j) dB[(j) * lddb + (i)]
 #define sB(i, j) sB[(j) * sldb + (i)]
 
-#define ZPPTRS_KERNEL_MAX_THREADS (64)
-
-////////////////////////////////////////////////////////////////////////////////
-template<typename T>
-__device__ void print_memory(
-                const char* msg,
-                int m, int n, T* sA, int lda,
-                int tx, int ty, int tz,
-                int bx, int by, int bz)
-{
-#if defined(PRECISION_d) && defined(DBG)
-    __syncthreads();
-    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
-       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
-        printf("%s = [ \n", msg);
-        for(int i = 0; i < m; i++) {
-            for(int j = 0; j < n; j++) {
-                printf("%8.4f  ", (double)(sA[j*lda+i]));
-            }
-            printf("\n");
-        }
-        printf("]; \n");
-    }
-    __syncthreads();
-#endif
-}
+#define ZPPTRS_KERNEL_MAX_THREADS (32)
 
 ////////////////////////////////////////////////////////////////////////////////
 // N is the size of the packed matrix
 // special kernel for nrhs = 1
 template<int N, int NTCOL>
 __global__
-//#ifdef MAGMA_HAVE_HIP
 __launch_bounds__(N*NTCOL)
-//#endif
 void
 zpptrs_1rhs_lower_batched_small_kernel(
         magmaDoubleComplex** dAP_array,
@@ -109,34 +82,6 @@ zpptrs_1rhs_lower_batched_small_kernel(
     }
     magmablas_syncwarp();
 
-    //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
-
-    #if 0
-    if( tx == 0 ) {
-        // Solving L L^T x = b
-        // First, solve L y = b for y
-        #pragma unroll
-        for(int i = 0; i < N; i++) {
-            sB[i] *= sA(i,i);
-            #pragma unroll
-            for(int j = i+1; j < N; j++) {
-                sB[j] -= sB[i] * sA(j,i);
-            }
-        }
-
-        // Second, solve L^T x = y for x
-        #pragma unroll
-        for(int i = N-1; i >= 0; i--) {
-            sB[i] *= MAGMA_Z_CONJ(sA(i,i));
-            #pragma unroll
-            for(int j = i-1; j >= 0; j--) {
-                sB[j] -= sB[i] * MAGMA_Z_CONJ( sA(i,j) );
-            }
-        }
-    }
-    magmablas_syncwarp();
-    #else
     // forward solve
     #pragma unroll
     for(int i = 0; i < N; i++) {
@@ -156,9 +101,6 @@ zpptrs_1rhs_lower_batched_small_kernel(
         sB[tx]                 = (tx <= i) ? rT2 : sB[tx];
         magmablas_syncwarp();
     }
-    #endif
-
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
     // write back to memory
     dB[ tx ] = sB[ tx ];
@@ -226,30 +168,57 @@ zpptrs_1rhs_lower_batched_small_kernel_driver(
     }
     return arginfo;
 }
+
 /***************************************************************************//**
     Purpose
     -------
-    PPTRF computes
+    ZPPTRS solves a system of linear equations A*X = B with a Hermitian positive
+    definite matrix A in packed storage using the Cholesky
+    factorization A = U**H * U or A = L * L**H computed by ZPPTRF.
 
-    This is a batched version that factors batchCount N-by-N matrices in parallel.
+    ** Only uplo = 'L' is currently supported
+
+    ** This is the batch version of the operation, performing the computation
+       on many independent problems having the same dimensions.
+
+    ** The routine currently supports a limited range of matrix sizes
+    ** This version supports only a single right hand side
 
     Arguments
     ---------
     @param[in]
+    uplo    magma_uplo_t
+      -     = MagmaUpper:  Upper triangle of A is stored;
+      -     = MagmaLower:  Lower triangle of A is stored.
+            Only MagmaLower is supported.
+
+    @param[in]
     n       INTEGER
-            The size of each matrix A.  N >= 0.
+            The order of the matrix A.  0 <= n <= 32.
+
+    @param[in]
+    nrhs    INTEGER
+            The number of right hand sides, i.e., the number of columns
+            of the matrix B.  0 <= NRHS <= 1.
+
+    @param[in]
+    dAP_array    Array of pointers, dimension (batchCount).
+             Each (input) COMPLEX*16 array, dimension (n*(n+1)/2)
+             The triangular factor U or L from the Cholesky factorization
+             A = U**H * U or A = L * L**H, packed columnwise in a linear array.
+             The j-th column of U or L is stored in the array AP as follows:
+               - if UPLO = 'U', AP(i + (j-1)*j/2) = U(i,j) for 1<=i<=j;
+               - if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = L(i,j) for j<=i<=n.
 
     @param[in,out]
-    dAP_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N).
-            On entry, each pointer is
+    dB_array Array of pointers, dimension (batchCount).
+             Each is a COMPLEX*16 array, dimension (lddb,nrhs)
+               - On entry, the right hand side matrix B.
+               - On exit, the solution matrix X.
 
-    @param[out]
-    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
-      -     = 0:  successful exit
-      -     < 0:  if INFO = -i, the i-th argument had an illegal value
-                  or another error occured, such as memory allocation failed.
-      -     > 0:  if INFO = i,
+    @param[in]
+    lddb    INTEGER
+            The leading dimension of each array B.  lddb >= max(1,n).
 
     @param[in]
     batchCount  INTEGER
@@ -259,7 +228,8 @@ zpptrs_1rhs_lower_batched_small_kernel_driver(
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_getrf_batched
+
+    @ingroup magma_potrs_batched
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zpptrs_1rhs_batched_small(
@@ -270,9 +240,9 @@ magma_zpptrs_1rhs_batched_small(
 {
     magma_int_t arginfo = 0;
 
-    if(n < 0 || n > 64)
+    if(n < 0 || n > 32)
         arginfo = -1;
-    else if( nrhs != 1 )
+    else if( nrhs > 1 )
         arginfo = -2;
     else if( lddb < n )
         arginfo = -5;
@@ -321,65 +291,6 @@ magma_zpptrs_1rhs_batched_small(
         case 32: arginfo = zpptrs_1rhs_lower_batched_small_kernel_driver<32>(dAP_array, dB_array, lddb, batchCount, queue ); break;
         default: arginfo = -100;
     }
-
-    #if 0
-    if(arginfo != 0) {
-        arginfo = 0;
-
-        magma_device_t device;
-        magma_getdevice( &device );
-
-        // constants
-        const int alignment_bytes = 128;
-        const int alignment       = alignment_bytes / sizeof(magmaDoubleComplex);
-        const int sizeA           = (n+1)*n/2;
-        const int sizeA_aligned   = ( (sizeA + alignment - 1) / alignment) * alignment;
-
-        int nrhs_nb = n;  // nrhs_nb is a blocking size for right hand sides (NRHS >= N)
-
-        const int sldb          = SLDB(n);
-        const int sizeB         = sldb * nrhs_nb;
-        const int sizeB_aligned = ( (sizeB + alignment - 1) / alignment) * alignment;
-
-        // configure shared memory
-        magma_int_t shmem = 0;
-        shmem += sizeA_aligned * sizeof(magmaDoubleComplex);
-        shmem += sizeB_aligned * sizeof(magmaDoubleComplex);
-
-        int shmem_max = 0;
-        #if CUDA_VERSION >= 9000
-        cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-        if (shmem <= shmem_max) {
-            cudaFuncSetAttribute(zpptrs_lower_batched_small_kernel_n, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
-        }
-        #else
-        cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-        #endif    // CUDA_VERSION >= 9000
-
-        if ( shmem > shmem_max ) {
-            arginfo = -200;;
-        }
-        else {
-            // configure grid and threads
-            magma_int_t gridx = magma_ceildiv(nrhs, nrhs_nb);
-            dim3 threads(nrhs_nb, 1, 1);
-
-            magma_int_t max_batchCount = queue->get_maxBatch();
-            for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
-                magma_int_t ibatch = min(max_batchCount, batchCount-i);
-                dim3 grid(gridx, 1, ibatch);
-                magmaDoubleComplex** dAP_array_ = dAP_array + i;
-                magmaDoubleComplex** dB_array_  = dB_array  + i;
-                void *kernel_args[] = {&n, &nrhs, &nrhs_nb, &dAP_array_, &dB_array_, &lddb, &batchCount};
-                cudaError_t e = cudaLaunchKernel((void*)zpptrs_lower_batched_small_kernel_n, grid, threads, kernel_args, shmem, queue->cuda_stream());
-                if( e != cudaSuccess ) {
-                    //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
-                    arginfo = -300;
-                }
-            }
-        }
-    }
-    #endif
 
     return arginfo;
 }

@@ -64,7 +64,7 @@ zpptrf_lower_batched_small_kernel(
     for(int j = 0; j < N; j++){
         // linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
         // update column j
-        if(tx >= j) {
+        if(linfo == 0 && tx >= j) {
             #pragma unroll
             for(int k = 0; k < j; k++) {
                 sA(tx, j) -= sA(tx, k) * MAGMA_Z_CONJ( sA(j,k) );
@@ -72,13 +72,17 @@ zpptrf_lower_batched_small_kernel(
         }
         magmablas_syncwarp();
 
+        // check the diagonal
+        double d = MAGMA_Z_REAL(sA(j, j));
+        linfo = ( d <= 0 && linfo == 0 ) ? (j+1) : linfo;
+
         // factorize column j
-        if(tx == j) {
+        if(linfo == 0 && tx == j) {
             sA(j, j) = MAGMA_Z_MAKE(sqrt(MAGMA_Z_REAL(sA(j, j))), MAGMA_D_ZERO);
         }
         magmablas_syncwarp();
 
-        if(tx > j) {
+        if(linfo == 0 && tx > j) {
             sA(tx, j) *= MAGMA_Z_DIV( MAGMA_Z_ONE, sA(j, j) );
         }
         magmablas_syncwarp();

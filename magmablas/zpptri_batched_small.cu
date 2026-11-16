@@ -31,31 +31,6 @@
 #define ZPPTRI_KERNEL_MAX_THREADS (64)
 
 ////////////////////////////////////////////////////////////////////////////////
-template<typename T>
-__device__ void print_memory(
-                const char* msg,
-                int m, int n, T* sA, int lda,
-                int tx, int ty, int tz,
-                int bx, int by, int bz)
-{
-#if defined(PRECISION_d) && defined(DBG)
-    __syncthreads();
-    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
-       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
-        printf("%s = [ \n", msg);
-        for(int i = 0; i < m; i++) {
-            for(int j = 0; j < n; j++) {
-                printf("%8.4f  ", (double)(sA[j*lda+i]));
-            }
-            printf("\n");
-        }
-        printf("]; \n");
-    }
-    __syncthreads();
-#endif
-}
-
-////////////////////////////////////////////////////////////////////////////////
 template<int N>
 __global__
 __launch_bounds__(N)
@@ -104,9 +79,6 @@ zpptri_lower_batched_small_kernel(
     sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
     __syncthreads();
 
-    //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
-
     // Solving L L^T x = b
     // First, solve L y = b for y
     #pragma unroll
@@ -128,8 +100,6 @@ zpptri_lower_batched_small_kernel(
         }
     }
     __syncthreads();
-
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
     // convert the inverse in sB from col-major to packed in sA
     #pragma unroll
@@ -193,9 +163,6 @@ zpptri_lower_batched_small_kernel_n(
     sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
     __syncthreads();
 
-    //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
-
     // Solving L L^T x = b
     // First, solve L y = b for y
     for(int i = 0; i < n; i++) {
@@ -213,8 +180,6 @@ zpptri_lower_batched_small_kernel_n(
         }
     }
     __syncthreads();
-
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
     // convert the inverse in sB from col-major to packed in sA
     for(int j = 0; j < n; j++) {
@@ -301,7 +266,9 @@ zpptri_lower_batched_small_kernel_driver(
     PPTRI computes the inverse of a Hermitian positive definite matrix A using
     the Cholesky factorization A = U**H*U or A = L*L**H computed by PPTRF.
 
-    This is a batched version that factors batchCount N-by-N matrices in parallel.
+    The Hermitian matrix A is stored in packed format
+
+    This is a batched version of PPTRI.
 
     Arguments
     ---------

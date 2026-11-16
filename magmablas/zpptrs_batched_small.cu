@@ -31,31 +31,6 @@
 #define ZPPTRS_KERNEL_MAX_THREADS (64)
 
 ////////////////////////////////////////////////////////////////////////////////
-template<typename T>
-__device__ void print_memory(
-                const char* msg,
-                int m, int n, T* sA, int lda,
-                int tx, int ty, int tz,
-                int bx, int by, int bz)
-{
-#if defined(PRECISION_d) && defined(DBG)
-    __syncthreads();
-    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
-       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
-        printf("%s = [ \n", msg);
-        for(int i = 0; i < m; i++) {
-            for(int j = 0; j < n; j++) {
-                printf("%8.4f  ", (double)(sA[j*lda+i]));
-            }
-            printf("\n");
-        }
-        printf("]; \n");
-    }
-    __syncthreads();
-#endif
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // N is the size of the packed matrix
 // NTHREADS >= N
 template<int N, int NTHREADS>
@@ -120,22 +95,7 @@ zpptrs_lower_batched_small_kernel(
     if(tx < N) {
         sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
     }
-
-    // let each thread read one column of B
-    // which enables the solve to completely independent of other threads
-    #if 0
-    magmaDoubleComplex rB[N] = {MAGMA_Z_ZERO};
-    if(tx < local_nrhs) {
-        #pragma unroll
-        for(int i = 0; i < N; i++) {
-            rB[i] = sB(i, tx);
-        }
-    }
-    #endif
     __syncthreads();
-
-    //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
     // Solving L L^T x = b
     // First, solve L y = b for y
@@ -161,19 +121,7 @@ zpptrs_lower_batched_small_kernel(
             sB(j,tx) -= sB(i, tx) * MAGMA_Z_CONJ( sA(i,j) );
         }
     }
-
-#if 0
-    // write B
-    if(tx < local_nrhs) {
-        #pragma unroll
-        for(int i = 0; i < N; i++) {
-            sB(i, tx) = rB[i];
-        }
-    }
-#endif
     __syncthreads();
-
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
     if(tx < N) {
         for(int i = 0; i < local_nrhs; i++) {
@@ -242,9 +190,6 @@ zpptrs_lower_batched_small_kernel_n(
         sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
     }
     __syncthreads();
-
-    //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
-    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
     // Solving L L^T x = b
     // First, solve L y = b for y (in shared memory)
@@ -361,27 +306,52 @@ zpptrs_lower_batched_small_kernel_driver(
 /***************************************************************************//**
     Purpose
     -------
-    PPTRF computes
+    ZPPTRS solves a system of linear equations A*X = B with a Hermitian positive
+    definite matrix A in packed storage using the Cholesky
+    factorization A = U**H * U or A = L * L**H computed by ZPPTRF.
 
-    This is a batched version that factors batchCount N-by-N matrices in parallel.
+    ** Only uplo = 'L' is currently supported
+
+    ** This is the batch version of the operation, performing the computation
+       on many independent problems having the same dimensions.
+
+    ** The routine currently supports a limited range of matrix sizes
 
     Arguments
     ---------
     @param[in]
+    uplo    magma_uplo_t
+      -     = MagmaUpper:  Upper triangle of A is stored;
+      -     = MagmaLower:  Lower triangle of A is stored.
+            Only MagmaLower is supported.
+
+    @param[in]
     n       INTEGER
-            The size of each matrix A.  N >= 0.
+            The order of the matrix A.  0 <= n <= 64.
+
+    @param[in]
+    nrhs    INTEGER
+            The number of right hand sides, i.e., the number of columns
+            of the matrix B.  NRHS >= 0.
+
+    @param[in]
+    dAP_array    Array of pointers, dimension (batchCount).
+             Each (input) COMPLEX*16 array, dimension (n*(n+1)/2)
+             The triangular factor U or L from the Cholesky factorization
+             A = U**H * U or A = L * L**H, packed columnwise in a linear array.
+             The j-th column of U or L is stored in the array AP as follows:
+               - if UPLO = 'U', AP(i + (j-1)*j/2) = U(i,j) for 1<=i<=j;
+               - if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = L(i,j) for j<=i<=n.
 
     @param[in,out]
-    dAP_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N).
-            On entry, each pointer is
+    dB_array Array of pointers, dimension (batchCount).
+             Each is a COMPLEX*16 array, dimension (lddb,nrhs)
+               - On entry, the right hand side matrix B.
+               - On exit, the solution matrix X.
 
-    @param[out]
-    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
-      -     = 0:  successful exit
-      -     < 0:  if INFO = -i, the i-th argument had an illegal value
-                  or another error occured, such as memory allocation failed.
-      -     > 0:  if INFO = i,
+    @param[in]
+    lddb    INTEGER
+            The leading dimension of each array B.  lddb >= max(1,n).
 
     @param[in]
     batchCount  INTEGER
@@ -391,7 +361,8 @@ zpptrs_lower_batched_small_kernel_driver(
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_getrf_batched
+
+    @ingroup magma_potrs_batched
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zpptrs_batched_small(
