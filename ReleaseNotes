@@ -27,6 +27,13 @@ single (s), double (d), single-complex (c), double-complex (z).
 
 2.11.0 - XXX XX, XXXX
     * Native (GPU only) mode added to magma_<T>getrs_gpu
+    * New functionality for packed storage:
+      - Batch Cholesky factorization (PPTRF)
+      - Batch Cholesky solve (PPTRS)
+      - Batch Cholesky inverse (PPTRI)
+      - Batch Cholesky factorization and solve (PPSV)
+      - Hermitian/symmetric matrix-vector product (HPMV)
+      - Hermitian/symmetric matrix-matrix multiplication (HPMM)
 
 2.10.0 - Feb 23, 2026
     * New Functionality: Batch SVD
