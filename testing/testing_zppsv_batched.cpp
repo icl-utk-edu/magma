@@ -28,10 +28,6 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (N == 9 && batchCount == 1 && ibatch == 0)
-
-// #define TEST_QUEUE_OVERHEAD_PPTRS
-
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zppsv_batched
 */
@@ -45,18 +41,18 @@ int main(int argc, char **argv)
     magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex *hA, *hAP, *hB, *hX;
-    magmaDoubleComplex_ptr dA, dAP, dB, dX;
+    magmaDoubleComplex_ptr dAP, dB, dX;
     magma_int_t *cpu_info;
     magma_int_t *dinfo_array;
-    magma_int_t N, nrhs, lda, ldb, ldda, lddb, info, sizeA, sizeAP, sizeA_batch, sizeAP_batch, sizeB, sizeB_batch;
+    magma_int_t N, nrhs, lda, ldb, lddb, info, sizeA, sizeAP, sizeA_batch, sizeAP_batch, sizeB, sizeB_batch;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
     magma_int_t batchCount;
 
-    magmaDoubleComplex **dA_array = NULL, **dAP_array = NULL;
-    magmaDoubleComplex **dB_array = NULL;
-    magmaDoubleComplex **dX_array = NULL;
+    magmaDoubleComplex **dAP_array = NULL;
+    magmaDoubleComplex **dB_array  = NULL;
+    magmaDoubleComplex **dX_array  = NULL;
 
     magma_opts opts( MagmaOptsBatched );
     opts.parse_opts( argc, argv );
@@ -75,8 +71,7 @@ int main(int argc, char **argv)
             N = opts.nsize[itest];
             lda    = N;
             ldb    = lda;
-            ldda   = magma_roundup( N, opts.align );  // multiple of 32 by default
-            lddb   = ldda;
+            lddb   = magma_roundup( N, opts.align );  // multiple of 32 by default
 
             // use the same flop count as POSV
             gflops = ( FLOPS_ZPOTRF( N) + FLOPS_ZPOTRS( N, nrhs ) ) / 1e9 * batchCount;
@@ -96,14 +91,12 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_imalloc_cpu( &cpu_info, batchCount ));
 
 
-            TESTING_CHECK( magma_zmalloc( &dA,  ldda*N*batchCount    ));
             TESTING_CHECK( magma_zmalloc( &dB,  lddb*nrhs*batchCount ));
             TESTING_CHECK( magma_zmalloc( &dX,  lddb*nrhs*batchCount ));
             TESTING_CHECK( magma_zmalloc( &dAP, sizeAP_batch         ));
 
             TESTING_CHECK( magma_imalloc( &dinfo_array, batchCount ));
 
-            TESTING_CHECK( magma_malloc( (void**) &dA_array,  batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &dAP_array, batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &dB_array,  batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &dX_array,  batchCount * sizeof(magmaDoubleComplex*) ));
@@ -127,7 +120,6 @@ int main(int argc, char **argv)
             }
 
             // set matrix (col major) cpu -> gpu
-            magma_zsetmatrix( N, N*batchCount,    hA, lda, dA, ldda, opts.queue );
             magma_zsetmatrix( N, nrhs*batchCount, hB, ldb, dB, lddb, opts.queue );
 
             // set matrix (packed format) cpu -> gpu
@@ -138,18 +130,10 @@ int main(int argc, char **argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            magma_zset_pointer( dA_array,  dA,  ldda, 0, 0, ldda*N,    batchCount, queue );
             magma_zset_pointer( dAP_array, dAP,    1, 0, 0, sizeAP,    batchCount, queue );
             magma_zset_pointer( dB_array,  dB,  lddb, 0, 0, lddb*nrhs, batchCount, queue );
             magma_zset_pointer( dX_array,  dX,  lddb, 0, 0, lddb*nrhs, batchCount, queue );
             magma_memset( dinfo_array, 0, batchCount * sizeof(magma_int_t) );
-
-            for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
-                if(cond) {
-                    magma_zprint_gpu(N,    N, dA+ibatch*ldda*N,    ldda, opts.queue);
-                    magma_zprint_gpu(N, nrhs, dB+ibatch*lddb*nrhs, lddb, opts.queue);
-                }
-            }
 
             if( opts.version == 1 ) {
                 gpu_time = magma_sync_wtime( opts.queue );
@@ -225,13 +209,6 @@ int main(int argc, char **argv)
             // Residual
             //=====================================================================
             magma_zgetmatrix( N, nrhs*batchCount, dB, lddb, hX, ldb, opts.queue );
-
-            for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
-                if(cond) {
-                    magma_zprint_gpu(N, nrhs, dB+ibatch*lddb*nrhs, lddb, opts.queue);
-                }
-            }
-
             error = 0;
             for (magma_int_t s=0; s < batchCount; s++) {
                 Anorm = lapackf77_zlange("I", &N, &N,    hA + s * lda * N, &lda, work);
@@ -298,14 +275,10 @@ int main(int argc, char **argv)
             magma_free_cpu( work );
             magma_free_cpu( cpu_info );
 
-            magma_free( dA  );
             magma_free( dAP );
             magma_free( dB  );
             magma_free( dX  );
-
             magma_free( dinfo_array );
-
-            magma_free( dA_array  );
             magma_free( dAP_array );
             magma_free( dB_array  );
             magma_free( dX_array  );
