@@ -62,7 +62,7 @@ magmablas_ztrsm_recursive_batched(
         magmablas_ztrsm_small_batched(side, uplo, transA, diag, m, n, alpha, dA_array(Ai, Aj), ldda, dB_array(Bi, Bj), lddb, batchCount, queue );
         return;
     }
-    
+
     switch(shape)
     {
         case 0: // lNl
